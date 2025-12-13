@@ -12,7 +12,7 @@ namespace RepositoryPatternUsingUOW.Core.Models
     {
         public int Id { get; set; }
         [Required,MaxLength(250)]
-        public string Title { get; set; }
+        public string Name { get; set; }
 
         // Navigations
         public Author Author { get; set; }

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RepositoryPatternUsingUOW.Core.DTOs.Authors;
 using RepositoryPatternUsingUOW.Core.Interfaces;
 using RepositoryPatternUsingUOW.Core.Models;
 
@@ -7,8 +9,9 @@ namespace RepositoryPatternUsingUOW.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthorsController : ControllerBase
+    public class AuthorsController : BaseController<Author, CreateAuthorDto, GetAuthorDto, UpdateAuthorDto>
     {
+        #region Old
         //private readonly IUnitOfWork _unitOfWork;
         //public AuthorsController(IUnitOfWork unitOfWork)
         //{
@@ -32,5 +35,12 @@ namespace RepositoryPatternUsingUOW.API.Controllers
         //{
         //    return Ok(_unitOfWork.Authors.GetAll());
         //}
+        #endregion
+
+        public AuthorsController(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
+        {
+        }
+        protected override IBaseRepository<Author> Repository => _unitOfWork.Authors;
+
     }
 }
