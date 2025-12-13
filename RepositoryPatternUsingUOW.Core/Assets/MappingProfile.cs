@@ -1,0 +1,25 @@
+﻿using AutoMapper;
+using RepositoryPatternUsingUOW.Core.DTOs.Books;
+using RepositoryPatternUsingUOW.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RepositoryPatternUsingUOW.Core.Assets
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            CreateMap<CreateBook, Book>().ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Name));
+            CreateMap<Book, CreateBook>().ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Title));
+
+            CreateMap<GetBook, Book>().ForMember(dest => dest.Title, opt=> opt.MapFrom(src=>src.Name))
+                .ForPath(dest => dest.Author.Name, opt => opt.MapFrom(src => src.AuthorName)); // ForPath Only used for nested properties
+            CreateMap<Book, GetBook>().ForMember(dest => dest.Name, opt=> opt.MapFrom(src=>src.Title))
+                .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.Name));
+        }
+    }
+}

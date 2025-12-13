@@ -1,9 +1,11 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using RepositoryPatternUsingUOW.Core.Assets;
 using RepositoryPatternUsingUOW.Core.Interfaces;
 using RepositoryPatternUsingUOW.EF;
 using RepositoryPatternUsingUOW.EF.Repositories;
+using AutoMapper;
 
 namespace RepositoryPatternUsingUOW.API
 {
@@ -28,9 +30,10 @@ namespace RepositoryPatternUsingUOW.API
             });
 
             // Registeration of services and repos
-            //builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            //builder.Services.AddScoped(ty
+            //peof(IBaseRepository<>), typeof(BaseRepository<>));
             builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
-
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

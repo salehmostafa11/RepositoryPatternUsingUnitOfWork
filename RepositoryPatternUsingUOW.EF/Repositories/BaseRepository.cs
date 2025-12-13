@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RepositoryPatternUsingUOW.Core.Consts;
+using RepositoryPatternUsingUOW.Core.DTOs;
 using RepositoryPatternUsingUOW.Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -14,79 +15,143 @@ namespace RepositoryPatternUsingUOW.EF.Repositories
     {
         private readonly ApplicationDbContext _context = applicationDbContext;
 
-        public T Add(T entity)
+        public async Task<IEnumerable<T>> GetAll()
         {
-             _context.Set<T>().Add(entity);
-            return entity;
+            return await _context.Set<T>().AsNoTracking().ToListAsync();
         }
-
-        public IEnumerable<T> AddRange(IEnumerable<T> entities)
+        public async Task<IEnumerable<T>> GetAllIncluded(params Expression<Func<T, object>>[] includes)
         {
-            _context.Set<T>().AddRange(entities);
-            return entities;
-        }
-
-        public IEnumerable<T> FindAllOrdereWithProperetyInclude(Expression<Func<T, bool>> criteria, Expression<Func<T, object>> orderBy= null,
-                                                           string orderByDirection = OrderBy.Ascending,
-                                                            params Expression<Func<T, object>>[] includeProperties)
-        {
-            IQueryable<T> query = _context.Set<T>().Where(criteria);
-
-            //if(skip.HasValue)
-            //    query = query.Skip(skip.Value);
-            //if(take.HasValue)
-            //    query = query.Take(take.Value);
-
-            if(orderBy != null)
+            IQueryable<T> query = _context.Set<T>();
+            if(includes != null)
             {
-                if(orderByDirection == OrderBy.Descending)
-                    query = query.OrderByDescending(orderBy);
-                else
-                    query = query.OrderBy(orderBy);
+                foreach (var include in includes)
+                    query = query.Include(include);
+            }
+            return await query.AsNoTracking().ToListAsync();
+        }
+        public async Task<T?> GetByCriteriaIncluded(Expression<Func<T, bool>> criteria,params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _context.Set<T>();
+            if(includes.Count() !=0)
+            {
+                foreach (var include in includes)
+                    query = query.Include(include);
+            }
+            if(criteria != null)
+                query =  query.Where(criteria);
+            return await query.AsNoTracking().FirstOrDefaultAsync();
+        }
+        public void Add(T entity)
+        {
+            _context.Add(entity);
+        }
+        public async Task<IEnumerable<T>> SearchIncluded(Expression<Func<T, bool>> criteria,
+            params Expression<Func<T, object>>[] includeProperties)
+        {
+            IQueryable<T> query = _context.Set<T>();
+
+            if (criteria != null)
+                query = query.Where(criteria);
+            if(includeProperties.Count() > 0)
+            {
+                foreach (var include in includeProperties)
+                    query = query.AsNoTracking().Include(include);
             }
 
-            if(includeProperties.Count() != 0)
-            {
-                foreach(var prop in includeProperties)
-                    query = query.Include(prop);
-            }
-
-            return query.ToList();
+            return await query.AsNoTracking().ToListAsync();
         }
-
-        public T FindByProperety(Expression<Func<T, bool>> criteria)
+        public void Delete(T entity)
         {
-            return _context.Set<T>().SingleOrDefault(criteria)!;
+            _context.Set<T>().Remove(entity);
         }
 
-        public IEnumerable<T> GetAll()
-        {
-            return _context.Set<T>().ToList();
-        }
-
-        public T GetById(int id)
-        {
-            return _context.Set<T>().Find(id)!;
-        }
-
-        public async Task<T> GetByIdAsync(int id)
-        {
-            return await _context.Set<T>().FindAsync(id)!;
-        }
         public T Update(T entity)
         {
             _context.Update(entity);
             return entity;
         }
 
-        public void Delete(T entity)
+        public async Task<bool> exists(Expression<Func<T, bool>> criteria)
         {
-            _context.Remove(entity);
+            return await _context.Set<T>().AnyAsync(criteria);
         }
-        public void DeleteRange(IEnumerable<T> entities)
-        {
-            _context.RemoveRange(entities);
-        }
+        #region Old
+        //    private readonly ApplicationDbContext _context = applicationDbContext;
+
+        //    public T Add(T entity)
+        //    {
+        //         _context.Set<T>().Add(entity);
+        //        return entity;
+        //    }
+
+        //    public IEnumerable<T> AddRange(IEnumerable<T> entities)
+        //    {
+        //        _context.Set<T>().AddRange(entities);
+        //        return entities;
+        //    }
+
+        //    public IEnumerable<T> FindAllOrdereWithProperetyInclude(Expression<Func<T, bool>> criteria, Expression<Func<T, object>> orderBy= null,
+        //                                                       string orderByDirection = OrderBy.Ascending,
+        //                                                        params Expression<Func<T, object>>[] includeProperties)
+        //    {
+        //        IQueryable<T> query = _context.Set<T>().Where(criteria);
+
+        //        //if(skip.HasValue)
+        //        //    query = query.Skip(skip.Value);
+        //        //if(take.HasValue)
+        //        //    query = query.Take(take.Value);
+
+        //        if(orderBy != null)
+        //        {
+        //            if(orderByDirection == OrderBy.Descending)
+        //                query = query.OrderByDescending(orderBy);
+        //            else
+        //                query = query.OrderBy(orderBy);
+        //        }
+
+        //        if(includeProperties.Count() != 0)
+        //        {
+        //            foreach(var prop in includeProperties)
+        //                query = query.Include(prop);
+        //        }
+
+        //        return query.ToList();
+        //    }
+
+        //    public T FindByProperety(Expression<Func<T, bool>> criteria)
+        //    {
+        //        return _context.Set<T>().SingleOrDefault(criteria)!;
+        //    }
+
+        //    public IEnumerable<T> GetAll()
+        //    {
+        //        return _context.Set<T>().ToList();
+        //    }
+
+        //    public T GetById(int id)
+        //    {
+        //        return _context.Set<T>().Find(id)!;
+        //    }
+
+        //    public async Task<T> GetByIdAsync(int id)
+        //    {
+        //        return await _context.Set<T>().FindAsync(id)!;
+        //    }
+        //    public T Update(T entity)
+        //    {
+        //        _context.Update(entity);
+        //        return entity;
+        //    }
+
+        //    public void Delete(T entity)
+        //    {
+        //        _context.Remove(entity);
+        //    }
+        //    public void DeleteRange(IEnumerable<T> entities)
+        //    {
+        //        _context.RemoveRange(entities);
+        //    }
+        #endregion
 
     }
 }

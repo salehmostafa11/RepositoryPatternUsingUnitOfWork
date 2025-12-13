@@ -1,4 +1,5 @@
 ﻿using RepositoryPatternUsingUOW.Core.Consts;
+using RepositoryPatternUsingUOW.Core.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +11,17 @@ namespace RepositoryPatternUsingUOW.Core.Interfaces
 {
     public interface IBaseRepository<T> where T:class
     {
-        T GetById(int id);
-        Task<T> GetByIdAsync(int id);
-        IEnumerable<T> GetAll();
-        T FindByProperety(Expression<Func<T,bool>> criteria);
-        IEnumerable<T> FindAllOrdereWithProperetyInclude(Expression<Func<T,bool>> criteria, Expression<Func<T,object>> orderBy,
-            string orderByDirection = OrderBy.Ascending
-             , params Expression<Func<T, object>>[] includeProperties);
-        T Add(T entity);
-        IEnumerable<T> AddRange(IEnumerable<T> entities);
+        //CRUD
+        Task<T?> GetByCriteriaIncluded(Expression<Func<T, bool>> criteria, params Expression<Func<T, object>>[] includes);
+        Task<IEnumerable<T>> GetAll();
+        Task<IEnumerable<T>> GetAllIncluded(params Expression<Func<T, object>>[] Includes);
+        Task<IEnumerable<T>> SearchIncluded(Expression<Func<T,bool>> criteria, 
+            params Expression<Func<T, object>>[] includeProperties);
+
+        void Add(T entity);
         T Update(T entity);
-        void Delete(T entity);
-        void DeleteRange(IEnumerable<T> entities);
+        void Delete(T entity); 
+
+        Task<bool> exists(Expression<Func<T,bool>> criteria);
     }
 }
